@@ -1,0 +1,39 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Flight Path Safety</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1> Flight Path Safety</h1>
+    <p class="sub">Check route safety & nearest cities along the path.</p>
+    <div class="form">
+      <div class="field">
+        <label>Departure (city or airport)</label>
+        <input id="departure" placeholder="e.g., London">
+      </div>
+      <div class="field">
+        <label>Arrival (city or airport)</label>
+        <input id="arrival" placeholder="e.g., Tokyo">
+      </div>
+      <button id="runBtn">Analyze Route</button>
+      <!--<small class="hint">Server must have <code>OPENWEATHER_API_KEY</code> set.</small>-->
+    </div>
+    <div id="alert" class="alert" style="display:none;"></div>
+    <div id="plotWrap" class="plot" style="display:none;"><img id="plot" alt="Route Plot"/></div>
+    <div id="tableWrap" style="display:none;">
+      <h2>Waypoints</h2>
+      <table id="results">
+        <thead>
+          <tr><th>#</th><th>Nearest City</th><th>Safety</th><th>Temp (C)</th><th>Wind (m/s)</th><th>Condition</th></tr>
+        </thead><tbody></tbody>
+      </table>
+    </div>
+    <!--<footer>Built for Azure App Service  FastAPI</footer> -->
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
