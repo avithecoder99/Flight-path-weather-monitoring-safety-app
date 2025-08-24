@@ -4,12 +4,25 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from .utils import build_response
+from fastapi.middleware.cors import CORSMiddleware
 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
 
+
+
 app = FastAPI(title="Flight Path Safety")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],        # or restrict to your frontend domain(s)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
