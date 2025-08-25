@@ -1,21 +1,43 @@
-﻿import os
+﻿# app/main.py
+import os
+import traceback
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from .utils import build_response
 from fastapi.middleware.cors import CORSMiddleware
 
+from .utils import build_response
+
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
+# Set ALLOWED_ORIGINS on Azure to your site, e.g.
+# "https://<your-webapp>.azurewebsites.net,https://www.yourdomain.com"
+_raw = os.getenv("ALLOWED_ORIGINS", "")
+_allowed = [o.strip() for o in _raw.split(",") if o.strip()]
 
+# Add helpful defaults for local dev
+_allowed += ["http://localhost", "http://127.0.0.1", "http://localhost:8000", "http://127.0.0.1:8000"]
 
+# If deploying on Render, Render injects RENDER_EXTERNAL_HOSTNAME
+render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if render_host:
+    _allowed.append(f"https://{render_host}")
+
+# If deploying on Azure App Service, add your webapp host if you know it
+azure_app = os.getenv("AZURE_WEBAPP_HOSTNAME", "").strip()   # e.g. set to myapp.azurewebsites.net
+if azure_app:
+    _allowed.append(f"https://{azure_app}")
+
+# Deduplicate
+ALLOWED_ORIGINS = sorted(set([o for o in _allowed if o]))
 
 app = FastAPI(title="Flight Path Safety")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # or restrict to your frontend domain(s)
-    allow_credentials=True,
+    allow_origins=ALLOWED_ORIGINS,      # explicit list is best
+    allow_origin_regex = r"https://.*\.onrender\.com$|https://.*\.azurewebsites\.net$"  # optional: allow any *.onrender.com
+    allow_credentials=False,            # keep False unless you truly need cookies/auth
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -23,20 +45,37 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/analyze", response_class=JSONResponse)
 async def analyze(req: Request):
-    body = await req.json()
-    dep = body.get("departure", "").strip()
-    arr = body.get("arrival", "").strip()
-    api_key = OPENWEATHER_API_KEY or body.get("apiKey", "")
-    if not api_key:
-        return JSONResponse({"error": "OPENWEATHER_API_KEY missing."}, status_code=400)
-    result = build_response(dep, arr, api_key, airports_csv_path="app/airports_data.csv")
-    if "error" in result:
-        return JSONResponse(result, status_code=400)
-    return JSONResponse(result)
+    try:
+        body = await req.json()
+    except Exception:
+        return JSONResponse({"error": "Request body must be JSON."}, status_code=400)
+
+    try:
+        dep = (body.get("departure") or "").strip()
+        arr = (body.get("arrival") or "").strip()
+        api_key = OPENWEATHER_API_KEY or (body.get("apiKey") or "").strip()
+
+        if not api_key:
+            return JSONResponse({"error": "OPENWEATHER_API_KEY missing."}, status_code=400)
+        if not dep or not arr:
+            return JSONResponse({"error": "Both 'departure' and 'arrival' are required."}, status_code=400)
+
+        result = build_response(dep, arr, api_key, airports_csv_path="app/airports_data.csv")
+        if "error" in result:
+            return JSONResponse(result, status_code=400)
+
+        return JSONResponse(result, status_code=200)
+
+    except Exception as e:
+        err = "".join(traceback.format_exception_only(type(e), e)).strip()
+        return JSONResponse({"error": f"Internal Server Error: {err}"}, status_code=500)
+
+@app.get("/healthz", response_class=PlainTextResponse)
+async def healthz():
+    return "ok"
