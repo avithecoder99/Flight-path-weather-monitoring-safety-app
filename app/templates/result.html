@@ -1,0 +1,20 @@
+﻿<!doctype html>
+<html>
+<head><title>Results</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<main class="wrap">
+<h1>Results</h1>
+{% if error %}<div class="card alert">{{ error }}</div>{% else %}
+<p>{{ alert }}</p>
+<img src="{{ plot }}" style="max-width:100%"/>
+<table border="1">
+<tr><th>#</th><th>Safety</th><th>Temp</th></tr>
+{% for r in rows %}
+<tr><td>{{ loop.index }}</td><td>{{ r.safety }}</td><td>{{ r.temp }}</td></tr>
+{% endfor %}
+</table>
+{% endif %}
+<a href="/">← New</a>
+</main>
+</body>
+</html>

@@ -7,7 +7,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from geopy.distance import geodesic
 
+<<<<<<< HEAD
 # NEW: pooled requests session with retries
+=======
+# Network helpers
+>>>>>>> ac2cfa8 (final commit - updated code)
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib3.util.retry import Retry
@@ -15,10 +19,18 @@ from requests.adapters import HTTPAdapter
 
 AIRPORTS = None
 
+<<<<<<< HEAD
 def _make_session():
     s = requests.Session()
     retries = Retry(
         total=2,                # small number of retries
+=======
+# ---------- HTTP session with pooling + retries ----------
+def _make_session():
+    s = requests.Session()
+    retries = Retry(
+        total=2,
+>>>>>>> ac2cfa8 (final commit - updated code)
         connect=2,
         read=2,
         backoff_factor=0.4,
@@ -34,6 +46,10 @@ def _make_session():
 
 _SESSION = _make_session()
 
+<<<<<<< HEAD
+=======
+# ---------- Data loading ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def load_airports(csv_path: str):
     """Lazy-load and validate airports CSV."""
     global AIRPORTS
@@ -47,7 +63,11 @@ def load_airports(csv_path: str):
         AIRPORTS = df
     return AIRPORTS
 
+<<<<<<< HEAD
 # ---- MODIFIED: use HTTPS + pooled session + timeout ----
+=======
+# ---------- Geocoding / waypoints ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def get_city_coordinates(city_name: str, api_key: str):
     base_url = "https://api.openweathermap.org/geo/1.0/direct"
     try:
@@ -64,7 +84,11 @@ def generate_waypoints(start_coords, end_coords, num_points=6):
     lon = np.linspace(start_coords[1], end_coords[1], num_points)
     return list(zip(lat, lon))
 
+<<<<<<< HEAD
 # ---- MODIFIED: parallel weather fetch with retries + HTTPS + timeouts ----
+=======
+# ---------- Weather (parallel) ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def _fetch_weather(lat, lon, api_key: str, timeout=8):
     url = (
         "https://api.openweathermap.org/data/2.5/weather"
@@ -91,6 +115,10 @@ def get_current_weather_for_route(waypoints, api_key: str):
                 results[idx] = {"error": str(e)}
     return results
 
+<<<<<<< HEAD
+=======
+# ---------- Nearest city / airport ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def find_nearest_airport(waypoint, airport_df: pd.DataFrame):
     nearest_airport = nearest_city = nearest_country = None
     nearest_coords = None
@@ -120,6 +148,10 @@ def get_waypoint_city_labels(waypoints, airport_df):
             labels.append("Unknown")
     return labels
 
+<<<<<<< HEAD
+=======
+# ---------- Safety analysis ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def analyze_weather(weather_data):
     recs, unsafe_idx = [], -1
     for i, data in enumerate(weather_data):
@@ -139,6 +171,10 @@ def analyze_weather(weather_data):
             unsafe_idx = i
     return recs, unsafe_idx
 
+<<<<<<< HEAD
+=======
+# ---------- Plot (with legend + labels) ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def plot_route_with_recommendations(
     waypoints, recommendations, departure_coords, arrival_coords,
     departure_city, arrival_city, waypoint_city_labels,
@@ -147,6 +183,7 @@ def plot_route_with_recommendations(
     lat, lon = zip(*waypoints)
     colors = ["green" if r[1] == "Safe to continue" else "red" for r in recommendations]
 
+<<<<<<< HEAD
     # ---- MODIFIED: slightly smaller figure for faster render + smaller payload ----
     fig = plt.figure(figsize=(8, 6), dpi=100)
     plt.scatter(lon, lat, c=colors, marker="o", s=100, label="Waypoints")
@@ -163,21 +200,54 @@ def plot_route_with_recommendations(
     if emergency:
         e_coords, e_airport, e_city, e_country = emergency
         plt.scatter(e_coords[1], e_coords[0], c="red", marker="X", s=200, label="Emergency Landing Airport")
+=======
+    fig = plt.figure(figsize=(9, 6), dpi=100)
+    plt.scatter(lon, lat, c=colors, marker="o", s=110, label="Waypoints")
+    plt.plot(lon, lat, linestyle="--", color="blue", label="Flight Path")
+
+    plt.scatter(departure_coords[1], departure_coords[0], c="blue", marker="*", s=240, label=f"Departure: {departure_city}")
+    plt.scatter(arrival_coords[1],   arrival_coords[0],   c="brown", marker="*", s=240, label=f"Arrival: {arrival_city}")
+
+    # status + nearest city by each waypoint
+    for i, rec in enumerate(recommendations):
+        # status above
+        plt.annotate(rec[1], (lon[i], lat[i]), textcoords="offset points", xytext=(0, 10), ha="center")
+        # city below
+        if waypoint_city_labels and i < len(waypoint_city_labels):
+            plt.annotate(waypoint_city_labels[i], (lon[i], lat[i]),
+                         textcoords="offset points", xytext=(0, -15), ha="center", fontsize=9)
+
+    if emergency:
+        e_coords, e_airport, e_city, e_country = emergency
+        plt.scatter(e_coords[1], e_coords[0], c="red", marker="X", s=220, label="Emergency Landing")
+>>>>>>> ac2cfa8 (final commit - updated code)
         plt.annotate(f"{e_airport} ({e_city}, {e_country})",
                      (e_coords[1], e_coords[0]), textcoords="offset points", xytext=(0, -18), ha="center", color="red")
 
     plt.title("Flight Path with Safety Recommendations")
+<<<<<<< HEAD
     plt.legend()
     plt.grid()
     plt.xticks([]); plt.yticks([])
 
     buf = io.BytesIO()
     # ---- MODIFIED: set dpi in savefig, too ----
+=======
+    plt.legend(loc="upper left", frameon=True)
+    plt.grid(alpha=0.35)
+    plt.xticks([]); plt.yticks([])
+
+    buf = io.BytesIO()
+>>>>>>> ac2cfa8 (final commit - updated code)
     plt.savefig(buf, format="png", bbox_inches="tight", dpi=100)
     plt.close(fig)
     buf.seek(0)
     return "data:image/png;base64," + base64.b64encode(buf.read()).decode("utf-8")
 
+<<<<<<< HEAD
+=======
+# ---------- Build response for templates/API ----------
+>>>>>>> ac2cfa8 (final commit - updated code)
 def build_response(departure_city: str, arrival_city: str, api_key: str, airports_csv_path: str):
     airports = load_airports(airports_csv_path)
 
@@ -186,7 +256,10 @@ def build_response(departure_city: str, arrival_city: str, api_key: str, airport
     if not dep or not arr:
         return {"error": "Could not fetch coordinates. Check city/airport names."}
 
+<<<<<<< HEAD
     # (optional) reduce to 5 waypoints to cut one API call:
+=======
+>>>>>>> ac2cfa8 (final commit - updated code)
     waypoints = generate_waypoints(dep, arr, num_points=6)
     labels    = get_waypoint_city_labels(waypoints, airports)
     weather   = get_current_weather_for_route(waypoints, api_key)
@@ -208,6 +281,10 @@ def build_response(departure_city: str, arrival_city: str, api_key: str, airport
         waypoints, recs, dep, arr, departure_city, arrival_city, labels, emergency=emergency
     )
 
+<<<<<<< HEAD
+=======
+    # full stats per waypoint
+>>>>>>> ac2cfa8 (final commit - updated code)
     rows = []
     for i, w in enumerate(weather):
         rows.append({
