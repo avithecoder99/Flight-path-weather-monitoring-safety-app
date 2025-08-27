@@ -1,6 +1,3 @@
-Here’s a single code snippet you can paste in your terminal to create the README.md file with the full content:
-
-cat > README.md << 'EOF'
 # ✈️ Flight Path Weather Monitoring & Safety App (FastAPI + Matplotlib)
 
 This app analyzes a flight path between two cities or airports, checks live weather conditions at waypoints along the route, and provides recommendations on whether it’s safe to continue or if an emergency landing is advised.  
@@ -91,12 +88,5 @@ JSON API also available: POST /api/analyze with { "departure": "London", "arriva
 
 License
 
-MIT © 2025 Your Name
-EOF
-
-
----
-
-✅ Run this once → `README.md` will be created in your repo root with the full instructions.  
-
-Do you also want me to extend this snippet so it **commits + pushes** the README to your GitHub 
+MIT © 2025 Avinash Bellamkonda
+EOF 
